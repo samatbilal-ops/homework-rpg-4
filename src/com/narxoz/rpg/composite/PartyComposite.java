@@ -8,78 +8,47 @@ public class PartyComposite implements CombatNode {
     private final String name;
     private final List<CombatNode> children = new ArrayList<>();
 
-    public PartyComposite(String name) {
-        this.name = name;
-    }
-
-    public void add(CombatNode node) {
-        children.add(node);
-    }
-
-    public void remove(CombatNode node) {
-        children.remove(node);
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
+    public PartyComposite(String name) { this.name = name; }
+    public void add(CombatNode node) { children.add(node); }
 
     @Override
     public int getHealth() {
-        int totalHealth = 0;
-        for (CombatNode child : children) {
-            if (child.isAlive()) totalHealth += child.getHealth();
-        }
-        return totalHealth;
-    }
-
-    @Override
-    public int getAttackPower() {
-        int totalAttack = 0;
-        for (CombatNode child : children) {
-            if (child.isAlive()) totalAttack += child.getAttackPower();
-        }
-        return totalAttack;
+        int total = 0;
+        for (CombatNode child : children) total += child.getHealth();
+        return total;
     }
 
     @Override
     public void takeDamage(int amount) {
-        List<CombatNode> alive = getAliveChildren();
-        if (alive.isEmpty()) return;
-        int splitAmount = amount / alive.size();
-        if (splitAmount == 0 && amount > 0) splitAmount = 1;
-        for (CombatNode child : alive) {
-            child.takeDamage(splitAmount);
+        List<CombatNode> alive = new ArrayList<>();
+        for (CombatNode c : children) if (c.isAlive()) alive.add(c);
+
+        if (!alive.isEmpty()) {
+            int share = amount / alive.size();
+            for (CombatNode target : alive) target.takeDamage(share);
         }
     }
 
     @Override
     public boolean isAlive() {
-        for (CombatNode child : children) {
-            if (child.isAlive()) return true;
-        }
+        for (CombatNode child : children) if (child.isAlive()) return true;
         return false;
     }
 
     @Override
-    public List<CombatNode> getChildren() {
-        return Collections.unmodifiableList(children);
+    public void printTree(String indent) {
+        System.out.println(indent + "+ " + name + " [Total HP=" + getHealth() + "]");
+        for (CombatNode child : children) child.printTree(indent + "  ");
     }
 
     @Override
-    public void printTree(String indent) {
-        System.out.println(indent + "+ " + name + " [HP=" + getHealth() + ", ATK=" + getAttackPower() + "]");
-        for (CombatNode child : children) {
-            child.printTree(indent + "  ");
-        }
-    }
-
-    private List<CombatNode> getAliveChildren() {
-        List<CombatNode> alive = new ArrayList<>();
-        for (CombatNode child : children) {
-            if (child.isAlive()) alive.add(child);
-        }
-        return alive;
+    public String getName() { return name; }
+    @Override
+    public List<CombatNode> getChildren() { return Collections.unmodifiableList(children); }
+    @Override
+    public int getAttackPower() {
+        int total = 0;
+        for (CombatNode child : children) if (child.isAlive()) total += child.getAttackPower();
+        return total;
     }
 }
