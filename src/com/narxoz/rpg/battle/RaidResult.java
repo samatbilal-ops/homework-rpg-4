@@ -1,5 +1,4 @@
 package com.narxoz.rpg.battle;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
