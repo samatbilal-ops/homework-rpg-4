@@ -3,11 +3,12 @@ package com.narxoz.rpg;
 import com.narxoz.rpg.battle.RaidEngine;
 import com.narxoz.rpg.battle.RaidResult;
 import com.narxoz.rpg.bridge.AreaSkill;
+import com.narxoz.rpg.bridge.EffectImplementor;
 import com.narxoz.rpg.bridge.FireEffect;
 import com.narxoz.rpg.bridge.IceEffect;
+import com.narxoz.rpg.bridge.ShadowEffect;
 import com.narxoz.rpg.bridge.SingleTargetSkill;
 import com.narxoz.rpg.bridge.Skill;
-import com.narxoz.rpg.composite.CombatNode;
 import com.narxoz.rpg.composite.EnemyUnit;
 import com.narxoz.rpg.composite.HeroUnit;
 import com.narxoz.rpg.composite.PartyComposite;
@@ -15,51 +16,56 @@ import com.narxoz.rpg.composite.RaidGroup;
 
 public class Main {
     public static void main(String[] args) {
-        System.out.println("=== Homework 4 Demo: Bridge + Composite ===\n");
+        System.out.println("=== RPG Battle Simulator: Advanced Demo ===\n");
 
-        // TODO: build leaves
-        HeroUnit warrior = new HeroUnit("Arthas", 140, 30);
-        HeroUnit mage = new HeroUnit("Jaina", 90, 40);
-        EnemyUnit goblin = new EnemyUnit("Goblin", 70, 20);
-        EnemyUnit orc = new EnemyUnit("Orc", 120, 25);
+        PartyComposite alliance = new PartyComposite("Alliance Forces");
 
-        // TODO: build composite hierarchy (nested)
-        PartyComposite heroes = new PartyComposite("Heroes");
-        heroes.add(warrior);
-        heroes.add(mage);
+        PartyComposite knightSquad = new PartyComposite("Knight Squad");
+        knightSquad.add(new HeroUnit("Arthur", 120, 35));
+        knightSquad.add(new HeroUnit("Galahad", 110, 30));
 
-        PartyComposite frontline = new PartyComposite("Frontline");
-        frontline.add(goblin);
-        frontline.add(orc);
+        alliance.add(knightSquad);
+        alliance.add(new HeroUnit("Merlin", 80, 60));
 
-        RaidGroup enemies = new RaidGroup("Enemy Raid");
-        enemies.add(frontline);
+        RaidGroup hordeRaid = new RaidGroup("Horde Invasion");
 
-        System.out.println("--- Team Structures ---");
-        heroes.printTree("");
-        enemies.printTree("");
+        PartyComposite orcWarriors = new PartyComposite("Orc Warriors");
+        orcWarriors.add(new EnemyUnit("Orc Grunt 1", 100, 25));
+        orcWarriors.add(new EnemyUnit("Orc Grunt 2", 100, 25));
 
-        // TODO: Bridge combinations
-        Skill slashFire = new SingleTargetSkill("Slash", 20, new FireEffect());
-        Skill slashIce = new SingleTargetSkill("Slash", 20, new IceEffect());
-        Skill stormFire = new AreaSkill("Storm", 15, new FireEffect());
+        hordeRaid.add(orcWarriors);
+        hordeRaid.add(new EnemyUnit("Troll Shaman", 90, 45));
 
-        System.out.println("\n--- Bridge Preview ---");
-        System.out.println(slashFire.getSkillName() + " using " + slashFire.getEffectName());
-        System.out.println(slashIce.getSkillName() + " using " + slashIce.getEffectName());
-        System.out.println(stormFire.getSkillName() + " using " + stormFire.getEffectName());
+        System.out.println("Team Structures:");
+        alliance.printTree("");
+        hordeRaid.printTree("");
+        System.out.println();
 
-        // TODO: run raid
-        RaidEngine engine = new RaidEngine().setRandomSeed(42L);
-        RaidResult result = engine.runRaid(heroes, enemies, slashFire, stormFire);
+        EffectImplementor fire = new FireEffect();
+        EffectImplementor shadow = new ShadowEffect();
+        EffectImplementor ice = new IceEffect();
 
-        System.out.println("\n--- Raid Result ---");
+        Skill heavySlash = new SingleTargetSkill("Heavy Slash", 40, fire);
+        Skill darkNova = new AreaSkill("Dark Nova", 25, shadow);
+        Skill blizzard = new AreaSkill("Blizzard", 20, ice);
+
+        RaidEngine engine = new RaidEngine();
+        engine.setRandomSeed(99L);
+
+        System.out.println("--- Battle Start ---");
+        RaidResult result = engine.runRaid(alliance, hordeRaid, blizzard, heavySlash);
+
+        System.out.println("\n--- Battle Summary ---");
         System.out.println("Winner: " + result.getWinner());
-        System.out.println("Rounds: " + result.getRounds());
-        for (String line : result.getLog()) {
-            System.out.println(line);
+        System.out.println("Rounds Played: " + result.getRounds());
+
+        System.out.println("\nBattle Log:");
+        for (String event : result.getLog()) {
+            System.out.println(event);
         }
 
-        System.out.println("\n=== Demo Complete ===");
+        System.out.println("\nFinal State:");
+        alliance.printTree("");
+        hordeRaid.printTree("");
     }
 }
